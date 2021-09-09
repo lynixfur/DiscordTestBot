@@ -8,6 +8,11 @@ client.once('ready', () => {
 });
 
 client.on('interactionCreate', async interaction => {
+	if (interaction.isButton()) {
+		console.log(interaction);
+		await interaction.reply('Hellooo!');
+	}
+
 	if (!interaction.isCommand()) return;
 
 	const { commandName } = interaction;
@@ -19,26 +24,18 @@ client.on('interactionCreate', async interaction => {
 	} else if (commandName === 'user') {
 		await interaction.reply('Nothing here yet.');
 	} else if (commandName === 'sergal') {
+		const button = new MessageButton()
+		.setCustomId('primary')
+		.setLabel('This is a sergal')
+		.setStyle('PRIMARY')
+		.setEmoji('885331362142371890');
+
 		const row = new MessageActionRow()
 		.addComponents(
-			new MessageSelectMenu()
-				.setCustomId('select')
-				.setPlaceholder('Nothing selected')
-				.addOptions([
-					{
-						label: 'Select me',
-						description: 'This is a description',
-						value: 'first_option',
-					},
-					{
-						label: 'You can select me too',
-						description: 'This is also a description',
-						value: 'second_option',
-					},
-				]),
+			button
 		);
 
-		await interaction.reply({ content: 'Sergals are fun! https://discord.gg/ArS5C9qn, Ooooo Sergal Button!', components: [row] });
+		await interaction.reply({ content: 'I heard that you like sergals!', components: [row] });
 	}
 });
 
