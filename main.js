@@ -1,42 +1,29 @@
 
-const { Client, Intents, MessageActionRow, MessageButton, MessageSelectMenu  } = require('discord.js');
+const { Client, Collection, Intents, MessageActionRow, MessageButton, MessageSelectMenu  } = require('discord.js');
 const { token } = require('./config.json');
-const client = new Client({ intents: [Intents.FLAGS.GUILDS] });
 
-client.once('ready', () => {
+const Bot = (global.Bot = new Client({ fetchAllMembers: true, disableMentions: "none", intents: [Intents.FLAGS.GUILDS] }));
+const Commands = (global.Commands = new Collection());
+
+Bot.once('ready', () => {
 	console.log('Ready!');
+
+	Bot.user.setPresence({
+        status: "dnd",
+        activity: {
+            name: 'Sergals!',
+            type: "WATCHING"
+        }
+    });
 });
 
-client.on('interactionCreate', async interaction => {
-	if (interaction.isButton()) {
-		console.log(interaction);
-		await interaction.reply('Hellooo!');
-	}
-
-	if (!interaction.isCommand()) return;
-
-	const { commandName } = interaction;
-
-	if (commandName === 'ping') {
-		await interaction.reply('I am alive, pong!');
-	} else if (commandName === 'server') {
-		await interaction.reply(`Server name: ${interaction.guild.name}\nTotal members: ${interaction.guild.memberCount}`);
-	} else if (commandName === 'user') {
-		await interaction.reply('Nothing here yet.');
-	} else if (commandName === 'sergal') {
-		const button = new MessageButton()
-		.setCustomId('primary')
-		.setLabel('This is a sergal')
-		.setStyle('PRIMARY')
-		.setEmoji('885331362142371890');
-
-		const row = new MessageActionRow()
-		.addComponents(
-			button
-		);
-
-		await interaction.reply({ content: 'I heard that you like sergals!', components: [row] });
-	}
+Bot.on('interactionCreate', async interaction => {
+	const Command = Commands.get(interaction.data.name) || Commands.find(e => e.usages.some(a => a === interaction.data.name));
+	if(!Command || (!Command.enabled || Command.enabled != true)) return;
+	if(Command.required_perm != 0 && Command.required_perm.length && !Bot.hasPermission(interaction.member, Command.required_perm)) return await Bot.say(interaction, `You must have a \`${Command.required_perm.toUpperCase()}\` permission to use this command!`)
+	const Guild = Bot.guilds.cache.get(interaction.guild_id);
+	const Member = Guild.member(interaction.member.user.id);
+	return Command.run(interaction, Guild, Member, interaction.data.options);
 });
 
-client.login(token);
+Bot.login(token);

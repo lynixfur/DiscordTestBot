@@ -1,2 +1,0 @@
-# DiscordTestBot
- Test Bot?
