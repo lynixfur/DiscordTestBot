@@ -9,8 +9,7 @@
 
 const { Client, Collection, Intents, MessageActionRow, MessageButton, MessageSelectMenu  } = require('discord.js');
 const { token, mongo_URI, client_id } = require('./config.json');
-
-const rest = new REST({ version: '9' }).setToken(token);
+const fs = require('fs');
 
 const client = new Client({
   intents: [
@@ -22,26 +21,47 @@ const client = new Client({
   ]
 });
 
+/* Commands Management */
+client.commands = new Collection();
+const commands = [];
 
-Bot.once('ready', () => {
-	console.log('Ready!');
+const commandFiles = fs
+  .readdirSync('./commands')
+  .map(folder =>
+    fs
+      .readdirSync(`./commands/${folder}`)
+      .filter(file => file.endsWith('.js'))
+      .map(file => `./commands/${folder}/${file}`)
+  )
+  .flat();
 
-	Bot.user.setPresence({
-        status: "dnd",
-        activity: {
-            name: 'Sergals!',
-            type: "WATCHING"
-        }
+for (const file of commandFiles) {
+  const command = require(`${file}`);
+  if (Object.keys(command).length === 0) continue;
+  commands.push(command.data.toJSON());
+  client.commands.set(command.data.name, command);
+}
+
+(async () => {
+  try {
+    console.log('Started refreshing application (/) commands.');
+
+    await rest.put(Routes.applicationCommands(client_id), {
+      body: commands
     });
+
+    console.log('Successfully reloaded application (/) commands.');
+  } catch (error) {
+    console.error(error);
+  }
+})();
+
+
+
+client.once('ready', () => {
+	console.log('Ready!');
+	client.user.setActivity('lynix', { type: 'WATCHING' });
 });
 
-Bot.on('interactionCreate', async interaction => {
-	const Command = Commands.get(interaction.data.name) || Commands.find(e => e.usages.some(a => a === interaction.data.name));
-	if(!Command || (!Command.enabled || Command.enabled != true)) return;
-	if(Command.required_perm != 0 && Command.required_perm.length && !Bot.hasPermission(interaction.member, Command.required_perm)) return await Bot.say(interaction, `You must have a \`${Command.required_perm.toUpperCase()}\` permission to use this command!`)
-	const Guild = Bot.guilds.cache.get(interaction.guild_id);
-	const Member = Guild.member(interaction.member.user.id);
-	return Command.run(interaction, Guild, Member, interaction.data.options);
-});
-
-Bot.login(token);
+/* Login to DiscordAPI v13 */
+client.login(token);
