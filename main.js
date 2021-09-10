@@ -1,6 +1,14 @@
 
+/* 
+	Xenial Bot  v1.0.0 - Experimental 
+    Created by Lunar Lynix (https://github.com/lynixzenial)
+															   */
+
+
+
+
 const { Client, Collection, Intents, MessageActionRow, MessageButton, MessageSelectMenu  } = require('discord.js');
-const { token } = require('./config.json');
+const { token, mongo_URI, client_id } = require('./config.json');
 
 const Bot = (global.Bot = new Client({ fetchAllMembers: true, disableMentions: "none", intents: [Intents.FLAGS.GUILDS] }));
 const Commands = (global.Commands = new Collection());
