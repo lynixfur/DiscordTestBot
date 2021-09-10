@@ -10,8 +10,18 @@
 const { Client, Collection, Intents, MessageActionRow, MessageButton, MessageSelectMenu  } = require('discord.js');
 const { token, mongo_URI, client_id } = require('./config.json');
 
-const Bot = (global.Bot = new Client({ fetchAllMembers: true, disableMentions: "none", intents: [Intents.FLAGS.GUILDS] }));
-const Commands = (global.Commands = new Collection());
+const rest = new REST({ version: '9' }).setToken(token);
+
+const client = new Client({
+  intents: [
+    Intents.FLAGS.GUILDS,
+    Intents.FLAGS.GUILD_MEMBERS,
+    Intents.FLAGS.GUILD_MESSAGES,
+    Intents.FLAGS.GUILDS,
+    Intents.FLAGS.GUILD_VOICE_STATES
+  ]
+});
+
 
 Bot.once('ready', () => {
 	console.log('Ready!');
